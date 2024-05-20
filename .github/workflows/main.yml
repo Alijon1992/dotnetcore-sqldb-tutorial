@@ -1,0 +1,60 @@
+name: build-and-deploy-dotnet-app
+
+on:
+#   push:
+#     branches:
+#       - main
+  workflow_dispatch:
+    
+jobs:
+  build:
+    runs-on: windows-latest
+    environment:
+      name: 'Production'
+    env:
+      working-directory: '.\'
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup .NET Core SDK
+        uses: actions/setup-dotnet@v3
+        with: 
+          dotnet-version: |
+            3.1.x
+            6.0.x
+            7.0.x
+      - name: Install dependencies
+        run: dotnet restore
+      - name: Build
+        run: dotnet build --configuration Release --no-restore
+      - name: Test
+        run: dotnet test --no-restore --verbosity normal
+      - name: Publish
+        run: dotnet publish -c Release -o C:\myapp\alijon
+      - name: Upload artifact for deployment job
+        uses: actions/upload-artifact@v2
+        with:
+          name: artifact
+          path: C:\myapp\alijon
+
+  deploy-dotnet-app:
+    runs-on: windows-latest
+    needs: build
+    env:
+      web-app-resource-group-name: 'rg-web-app'
+      web-app-name: 'sample-web-app'
+    steps:
+      - name: Download artifact from build job
+        uses: actions/download-artifact@v2
+        with:
+          name: artifact
+      - name: Az login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+      - name: Deploy to Azure Web App
+        id: deploy-to-webapp
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: ${{ env.web-app-name }}
+          package: .
