@@ -42,7 +42,7 @@ jobs:
     needs: build
     env:
       web-app-resource-group-name: 'rg-web-app'
-      web-app-name: 'sample-web-app'
+      web-app-name: 'MyUniqueAppServiceName'
     steps:
       - name: Download artifact from build job
         uses: actions/download-artifact@v2
