@@ -39,7 +39,7 @@ jobs:
 
   deploy-dotnet-app:
     runs-on: windows-latest
-    environment: production
+    # environment: production
     # needs: build
     env:
       web-app-resource-group-name: 'rg-web-app'
